@@ -79,7 +79,39 @@ const Firebase = {
       console.error(`读取 ${subCollectionName} 子集合数据时发生错误：`, error);
     }
   },
-  // 其他操作函式...
+  findGroup: async (gPhone, gPw) => {
+    try {
+      // const q = firestore.query(firestore.collection(firestore, "groupOrder"), where("gPhone", "==", gPhone), where("gPw", "==", gPw));
+      const q = firestore.collection("groupOrder").where("gPhone", "==", gPhone).where("gPw", "==", gPw);
+        const querySnapshot = await q.get();
+        // const querySnapshot = await getDocs(q);
+        const firstDoc = querySnapshot.docs[0];
+        if (firstDoc) {
+          return firstDoc.id;
+        }
+        return null;
+    } catch (error) {
+        console.error("尋找訂單ID時發生錯誤：", error);
+        return null;
+    }
+  },
+  getDocumentById: async (collectionName, documentId) => {
+    try {
+      const documentRef = firestore.doc(`${collectionName}/${documentId}`);
+      const documentSnapshot = await documentRef.get();
+      if (documentSnapshot.exists) {
+        const documentData = documentSnapshot.data();
+        console.log("获取文档数据成功：", documentData);
+        return documentData;
+      } else {
+        console.log("文档不存在");
+        return null;
+      }
+    } catch (error) {
+      console.error("获取指定文档数据时发生错误：", error);
+      return null;
+    }
+  },
 };
 
 // 附加 Firebase 物件到全域的 window 物件上

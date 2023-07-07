@@ -7,13 +7,20 @@
 </head>
 <body>
   <div id="app">
-    <h1>Vue 3 + Firebase Example</h1>
+    <h1>Vue 3 + Firebase Example</h1>    
     <button @click="writeData">寫入資料</button>
     <button @click="readData">讀取資料</button>
     <div>
       <label>姓名{{userName}}</label>
       <input v-model="userName" />
     </div>
+    <hr>
+      <label>開團名稱</label><input v-model="groupInfo.gName" />
+      <label>聯絡手機</label><input v-model="groupInfo.gPhone" />
+      <label>設定進入碼</label><input v-model="groupInfo.gPw" />
+      <button @click="newGroup">新開團購</button>
+      <button @click="intoGroup">進入團購</button>
+    <hr>
     <ul>      
       <li v-for="order in orders" :key="order.id">
         <button @click="deleteData(order.id)">刪除</button>
@@ -46,6 +53,7 @@
       const orders = ref({});
       const subOrders = ref(null);
       const userName = ref("");
+      const groupInfo = ref({});
       const writeData = async () => {
         const collectionName = 'order';
         const data = {
@@ -114,15 +122,42 @@
       }
       const getSubOrder = async (id) => {
         subOrders.value = await Firebase.getSubCollectionData(id, "subOrder");
-        console.log("^^^^ ", subOrders.value[0].data);
+        console.log("^^^^ ", subOrders.value);
+      }
+      const newGroup = async () => {
+        console.log("新開團 " , groupInfo.value)
+        if(!groupInfo.value.gName || !groupInfo.value.gPhone || !groupInfo.value.gPw) {
+          console.log("資料未填完整 " + groupInfo.value.gName + " / " + groupInfo.value.gPhone + " / " + groupInfo.value.gPw)
+          return;
+        }
+        const collectionName = 'groupOrder';
+        await Firebase.addData(collectionName, groupInfo.value);
+      }
+      const intoGroup = async () => {
+        if(!groupInfo.value.gName || !groupInfo.value.gPhone || !groupInfo.value.gPw) {
+          console.log("資料未填完整 " + groupInfo.value.gName + " / " + groupInfo.value.gPhone + " / " + groupInfo.value.gPw)
+          return;
+        }
+        const collectionName = 'groupOrder';
+        // await Firebase.addData(collectionName, groupInfo.value);
+        let gId = await Firebase.findGroup(groupInfo.value.gPhone, groupInfo.value.gPw);
+        console.log("@@@@@ " + gId);
+        
+        // 讀取資料的程式碼
+        // let res = await Firebase.getData(collectionName, data);        
+        const documentData = await Firebase.getDocumentById(collectionName, gId);
+        console.log("//////", documentData);
       }
 
       return {
+        newGroup,
+        intoGroup,
         writeData,
         readData,
         deleteData,
         addOrder,
         getSubOrder,
+        groupInfo,
         orders,
         subOrders,
         userName
