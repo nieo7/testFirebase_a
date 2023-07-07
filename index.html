@@ -10,9 +10,27 @@
     <h1>Vue 3 + Firebase Example</h1>
     <button @click="writeData">寫入資料</button>
     <button @click="readData">讀取資料</button>
-    <ul>
+    <div>
+      <label>姓名{{userName}}</label>
+      <input v-model="userName" />
+    </div>
+    <ul>      
       <li v-for="order in orders" :key="order.id">
+        <button @click="deleteData(order.id)">刪除</button>
+        <button @click="addOrder(order.id)">新增</button>
+        <button @click="getSubOrder(order.id)">訂單</button>
         <strong>訂單 ID：</strong>{{ order.id }}，<strong>訂單資料：</strong>{{ order.data.name }}，<strong>pw：</strong>{{ order.data.pw }}
+      </li>
+    </ul>
+    <hr>
+    <ul v-if="subOrders">
+      <li v-for="item in subOrders" :key="item.id">
+        <p>{{item.id}}</p>
+        <p>{{item.data.pname}}</p>
+        <p>{{item.data.ppw}}</p>
+        <div v-if="item.data.order">
+          <p v-for="od in item.data.order">{{od.id}} - {{od.count}}</p>
+        </div>
       </li>
     </ul>
   </div>
@@ -22,19 +40,22 @@
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
   <script src="./firebase.js"></script>
   <script>
-    const { createApp } = Vue;
+    const { createApp, ref } = Vue;
 
     const setup = () => {
+      const orders = ref({});
+      const subOrders = ref(null);
+      const userName = ref("");
       const writeData = async () => {
         const collectionName = 'order';
         const data = {
           // 新增的資料
-          name: "令狐冲",
+          name: "黃蓉",
           phone: "0988123456",
           pw: "3721",
           data: [
               {
-                  pname: "岳零珊",
+                  pname: "郭靖",
                   ppw: "6855",
                   order: [
                       { id: "1", count: 2 },
@@ -42,7 +63,7 @@
                   ]
               },
               {
-                  name: "任我行",
+                  name: "黃藥師",
                   ppw: "2124",
                   order: [
                       { id: "0", count: 1 },
@@ -51,7 +72,7 @@
                   ]
               },
               {
-                  name: "向問天",
+                  name: "洪七公",
                   ppw: "8899",
                   order: [
                       { id: "2", count: 3 },
@@ -63,17 +84,48 @@
         };
 
         await Firebase.addData(collectionName, data);
+        readData();
       };
 
-      const readData = () => {
+      const readData = async () => {
+        const collectionName = 'order';
         // 讀取資料的程式碼
+        // let res = await Firebase.getData(collectionName, data);
+        orders.value = await Firebase.getData();
+        console.log("orders = ", orders.value);
+        
       };
 
-      // 在 setup 函式中可以進行其他操作...
+      const deleteData = async (id) => {
+        console.log("要刪除的id " + id)
+        orders.value = await Firebase.deleteOrder(id);
+        readData();
+      }
+      const addOrder = async (id) => {
+        console.log("要新增訂單的id " + id)
+        await Firebase.addSubCollection(id, "subOrder", {
+          pname: userName.value,
+          ppw: "6833",
+          order: [
+              { id: "0", count: 2 },
+              { id: "2", count: 5 }
+          ]
+        })
+      }
+      const getSubOrder = async (id) => {
+        subOrders.value = await Firebase.getSubCollectionData(id, "subOrder");
+        console.log("^^^^ ", subOrders.value[0].data);
+      }
 
       return {
         writeData,
         readData,
+        deleteData,
+        addOrder,
+        getSubOrder,
+        orders,
+        subOrders,
+        userName
       };
     };
 
