@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vue 3 + Firebase Example</title>
+    </head>
+    <body>
+    <div id="app">
+    <h1>Vue 3 + Firebase Example</h1>
+    <button @click="writeData">寫入資料</button>
+    <button @click="readData">讀取資料</button>
+    <ul>
+        <li v-for="order in orders" :key="order.id">
+        <strong>訂單 ID：</strong>{{ order.id }}，<strong>訂單資料：</strong>{{ order.data.name }}，<strong>pw：</strong>{{ order.data.pw }}
+        </li>
+    </ul>
+    </div>
+
+    <script src="https://unpkg.com/vue@next"></script>
+<script type="module">
+    // Your Firebase SDK imports
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
+    import { getAnalytics } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-analytics.js";
+    import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, query, where, deleteDoc } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
+
+    
+
+    //{initializeFirestore}
+    const { createApp, ref, onMounted } = Vue;
+    // Your Firebase configuration
+    const firebaseConfig = {
+        apiKey: "AIzaSyCGBbSB4QtxvoEXQqsktzfUOTG4e_oYJ2c",
+        authDomain: "nifb-facd6.firebaseapp.com",
+        projectId: "nifb-facd6",
+        storageBucket: "nifb-facd6.appspot.com",
+        messagingSenderId: "971119415970",
+        appId: "1:971119415970:web:51b73a2b31f5991ae9bdfb",
+        measurementId: "G-JKEP728BXD"
+    };
+
+    const useFirestore = () => {
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const analytics = getAnalytics(app);
+        const firestore = getFirestore(app);
+
+        const orders = ref([]);
+
+        const writeData = async () => {
+        try {
+            const orderCollectionRef = collection(firestore, "order");
+
+            const orderData = {
+            name: "John",
+            phone: "1234567890",
+            email: "john@example.com"
+            // 其他欄位...
+            };
+
+            await addDoc(orderCollectionRef, orderData);
+            console.log("資料已成功寫入到 'order' 集合");
+        } catch (error) {
+            console.error("寫入資料時發生錯誤：", error);
+        }
+        };
+
+        const readData = async () => {
+        try {
+            const querySnapshot = await getDocs(collection(firestore, "order"));
+            const results = [];
+            querySnapshot.forEach((doc) => {
+            results.push({ id: doc.id, data: doc.data() });
+            });
+            orders.value = results;
+        } catch (error) {
+            console.error("讀取資料時發生錯誤：", error);
+        }
+        };
+
+        const updateData = async (orderId, newData) => {
+            try {
+                const orderDocRef = doc(firestore, "order", orderId);
+                await updateDoc(orderDocRef, newData);
+                console.log(`資料已成功更新，訂單 ID: ${orderId}`);
+            } catch (error) {
+                console.error("更新資料時發生錯誤：", error);
+            }
+        };
+        const updateField = async (orderId, fieldName, newValue) => {
+            try {
+                const orderDocRef = doc(firestore, "order", orderId);
+                await updateDoc(orderDocRef, {
+                    [fieldName]: newValue
+                });
+                console.log(`資料已成功更新，訂單 ID: ${orderId}`);
+            } catch (error) {
+                console.error("更新資料時發生錯誤：", error);
+            }
+        };
+        const findOrderIdByPhoneAndPw = async (phone, pw) => {
+            try {
+                const q = query(collection(firestore, "order"), where("phone", "==", phone), where("pw", "==", pw));
+                const querySnapshot = await getDocs(q);
+
+                let orderId = null;
+
+                querySnapshot.forEach((doc) => {
+                orderId = doc.id;
+                });
+
+                return orderId;
+            } catch (error) {
+                console.error("尋找訂單ID時發生錯誤：", error);
+                return null;
+            }
+        };
+        const deleteOrder = async (orderId) => {
+            try {
+            const firestore = getFirestore();
+            const orderRef = doc(collection(firestore, "order"), orderId);
+            await deleteDoc(orderRef);
+            console.log("訂單已成功刪除");
+            } catch (error) {
+            console.error("刪除訂單時發生錯誤：", error);
+            }
+        };
+        return {
+            orders,
+            writeData,
+            readData,
+            updateData,
+            updateField,
+            findOrderIdByPhoneAndPw,
+            deleteOrder
+        };
+    };
+
+    const app = createApp({
+        setup() {
+            
+            const { orders, writeData, readData, updateData, updateField, findOrderIdByPhoneAndPw, deleteOrder } = useFirestore();
+
+            onMounted(() => {
+                readData();
+                // updateField("wrBalR9Qktu53ZsITUge", "pw", "assbcd");
+                
+            });
+
+            // let iid = findOrderIdByPhoneAndPw("0968572544", "assbcd");
+            // console.log("##### " , iid);
+            // const orderId = findOrderIdByPhoneAndPw("0968572544", "assbcd");
+            // if (orderId) {
+            //     console.log("找到訂單ID:", orderId);
+            // } else {
+            //     console.log("未找到符合條件的訂單");
+            // }
+            const handleDeleteOrder = async (orderId) => {
+                await deleteOrder(orderId);
+            };
+            const fetchData = async () => {
+                const orderId = await findOrderIdByPhoneAndPw("0968572544", "assbcd");
+                console.log("Order ID:", orderId);                
+            };
+
+            fetchData();
+            // handleDeleteOrder("3CCITidWpqKUyuiT7O0q");
+
+            return {
+                orders,
+                writeData,
+                readData
+            };
+        }
+    });
+
+    app.mount("#app");
+</script>
+</body>
+</html>

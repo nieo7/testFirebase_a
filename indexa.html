@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <script type="module">
+    // Import the functions you need from the SDKs you need
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
+    import { getAnalytics } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-analytics.js";
+    // TODO: Add SDKs for Firebase products that you want to use
+    // https://firebase.google.com/docs/web/setup#available-libraries
+
+    // Your web app's Firebase configuration
+    // For Firebase JS SDK v7.20.0 and later, measurementId is optional
+    const firebaseConfig = {
+        apiKey: "AIzaSyCGBbSB4QtxvoEXQqsktzfUOTG4e_oYJ2c",
+        authDomain: "nifb-facd6.firebaseapp.com",
+        projectId: "nifb-facd6",
+        storageBucket: "nifb-facd6.appspot.com",
+        messagingSenderId: "971119415970",
+        appId: "1:971119415970:web:51b73a2b31f5991ae9bdfb",
+        measurementId: "G-JKEP728BXD"
+    };
+
+    // Initialize Firebase
+    const app = initializeApp(firebaseConfig);
+    const analytics = getAnalytics(app);
+    
+    //引入 Firestore 相關的函式庫
+    import { initializeFirestore, getFirestore, query, where, collection, addDoc, getDocs } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
+    
+    //初始化 Firestore
+    const firestore = getFirestore(app);
+
+    const writeData = async () => {
+        try {
+            const orderCollectionRef = collection(firestore, 'order');
+            
+            const orderData = {
+                name: "四九",
+                phone: "0968572542",
+                pw: "1234",
+                data: [
+                    {
+                    pname: "胡鐵花",
+                    ppw: "6524",
+                    order: [
+                        { id: "1", count: 8 },
+                        { id: "2", count: 3 }
+                    ]
+                    },
+                    {
+                    name: "楚留香",
+                    ppw: "3124",
+                    order: [
+                        { id: "0", count: 2 },
+                        { id: "2", count: 1 },
+                        { id: "5", count: 1 }
+                    ]
+                    }
+                ]
+            };
+
+            await addDoc(orderCollectionRef, orderData);
+            console.log("資料已成功寫入到 'order' 集合");
+        } catch (error) {
+            console.error("寫入資料時發生錯誤：", error);
+        }
+    };
+
+    // writeData();
+    
+    const readData = async () => {
+        try {
+            // 建立查詢
+            const querySnapshot = await getDocs(
+                query(collection(firestore, "order"), where("phone", "==", "0968572544"))
+            );
+            // 處理查詢結果：
+            querySnapshot.forEach((doc) => {
+                console.log("訂單 ID:", doc.id);
+                console.log("訂單資料：", doc.data());
+            });
+        } catch (error) {
+            console.error("讀取資料時發生錯誤：", error);
+        }
+    };
+
+    readData();
+
+
+
+    
+    </script>
+</body>
+</html>

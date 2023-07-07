@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Vue 3 + Firebase Example</title>
+</head>
+<body>
+  <div id="app">
+    <h1>Vue 3 + Firebase Example</h1>
+    <button @click="writeData">寫入資料</button>
+    <button @click="readData">讀取資料</button>
+    <ul>
+      <li v-for="order in orders" :key="order.id">
+        <strong>訂單 ID：</strong>{{ order.id }}，<strong>訂單資料：</strong>{{ order.data.name }}，<strong>pw：</strong>{{ order.data.pw }}
+      </li>
+    </ul>
+  </div>
+
+  <script src="https://unpkg.com/vue@next"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <script src="./firebase.js"></script>
+  <script>
+    const { createApp } = Vue;
+
+    const setup = () => {
+      const writeData = async () => {
+        const collectionName = 'order';
+        const data = {
+          // 新增的資料
+          name: "令狐冲",
+          phone: "0988123456",
+          pw: "3721",
+          data: [
+              {
+                  pname: "岳零珊",
+                  ppw: "6855",
+                  order: [
+                      { id: "1", count: 2 },
+                      { id: "4", count: 5 }
+                  ]
+              },
+              {
+                  name: "任我行",
+                  ppw: "2124",
+                  order: [
+                      { id: "0", count: 1 },
+                      { id: "1", count: 1 },
+                      { id: "3", count: 1 }
+                  ]
+              },
+              {
+                  name: "向問天",
+                  ppw: "8899",
+                  order: [
+                      { id: "2", count: 3 },
+                      { id: "4", count: 3 },
+                      { id: "7", count: 5 }
+                  ]
+              }
+          ]
+        };
+
+        await Firebase.addData(collectionName, data);
+      };
+
+      const readData = () => {
+        // 讀取資料的程式碼
+      };
+
+      // 在 setup 函式中可以進行其他操作...
+
+      return {
+        writeData,
+        readData,
+      };
+    };
+
+    const app = createApp({
+      setup,
+    });
+
+    app.mount('#app');
+  </script>
+</body>
+</html>

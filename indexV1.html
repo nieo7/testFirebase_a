@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <div id="app">
+        <!-- Your Vue app -->
+    </div>
+
+    <script src="https://unpkg.com/vue@next"></script>
+    <script type="module">
+    // Your Firebase SDK imports
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
+    import { getAnalytics } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-analytics.js";
+    import { initializeFirestore, getFirestore, query, where, collection, addDoc, getDocs } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyCGBbSB4QtxvoEXQqsktzfUOTG4e_oYJ2c",
+        authDomain: "nifb-facd6.firebaseapp.com",
+        projectId: "nifb-facd6",
+        storageBucket: "nifb-facd6.appspot.com",
+        messagingSenderId: "971119415970",
+        appId: "1:971119415970:web:51b73a2b31f5991ae9bdfb",
+        measurementId: "G-JKEP728BXD"
+    };
+
+    const useFirestore = () => {
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const analytics = getAnalytics(app);
+        const firestore = getFirestore(app);
+
+        const writeData = async () => {
+            try {
+                const orderCollectionRef = collection(firestore, 'order');
+                
+                const orderData = {
+                    name: "四九",
+                    phone: "0968572542",
+                    pw: "1234",
+                    data: [
+                        {
+                            pname: "胡鐵花",
+                            ppw: "6524",
+                            order: [
+                                { id: "1", count: 8 },
+                                { id: "2", count: 3 }
+                            ]
+                        },
+                        {
+                            name: "楚留香",
+                            ppw: "3124",
+                            order: [
+                                { id: "0", count: 2 },
+                                { id: "2", count: 1 },
+                                { id: "5", count: 1 }
+                            ]
+                        }
+                    ]
+                };
+
+                await addDoc(orderCollectionRef, orderData);
+                console.log("資料已成功寫入到 'order' 集合");
+            } catch (error) {
+                console.error("寫入資料時發生錯誤：", error);
+            }
+        };
+
+        const readData = async () => {
+            try {
+                const querySnapshot = await getDocs(
+                    query(collection(firestore, "order"), where("phone", "==", "0968572544"))
+                );
+
+                querySnapshot.forEach((doc) => {
+                    console.log("訂單 ID:", doc.id);
+                    console.log("訂單資料：", doc.data());
+                });
+            } catch (error) {
+                console.error("讀取資料時發生錯誤：", error);
+            }
+        };
+
+        const updateData = async (orderId, newData) => {
+            try {
+                const orderRef = doc(firestore, 'order', orderId);
+                await updateDoc(orderRef, newData);
+                console.log(`訂單 ${orderId} 資料已成功更新`);
+            } catch (error) {
+                console.error(`更新訂單 ${orderId} 時發生錯誤：`, error);
+            }
+        };
+
+        return {
+            writeData,
+            readData
+        };
+    };
+
+    const app = Vue.createApp({
+        setup() {
+            const { writeData, readData } = useFirestore();
+
+            // Call the methods when the app is created
+            // writeData();
+            readData();
+        }
+    });
+
+    app.mount("#app");
+    </script>
+</body>
+</html>
